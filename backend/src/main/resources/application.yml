@@ -1,0 +1,178 @@
+# ============================================================
+# Payment Management System - Local Configuration
+# ============================================================
+
+spring:
+
+  application:
+    name: payment-management-system
+
+
+  # ==========================================================
+  # PostgreSQL
+  # ==========================================================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pms
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: PmsHikariPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 3000
+      validation-timeout: 1000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+
+  # ==========================================================
+  # JPA / Hibernate
+  # ==========================================================
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+
+    show-sql: false
+
+
+  # ==========================================================
+  # Flyway
+  # ==========================================================
+  flyway:
+    enabled: true
+
+    locations:
+      - classpath:db/migration
+
+    baseline-on-migrate: true
+
+
+  # ==========================================================
+  # Redis
+  # ==========================================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 2
+
+
+  # ==========================================================
+  # Kafka
+  # ==========================================================
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      acks: all
+
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      properties:
+        enable.idempotence: true
+        compression.type: lz4
+
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.trusted.packages: "com.zurak.pms.*"
+
+      auto-offset-reset: earliest
+
+      enable-auto-commit: false
+
+    listener:
+      ack-mode: manual
+
+
+# ============================================================
+# Server
+# ============================================================
+server:
+  port: 8084
+
+  shutdown: graceful
+
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+
+# ============================================================
+# Actuator / Observability
+# ============================================================
+management:
+
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus
+
+  endpoint:
+    health:
+      show-details: when_authorized
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
+# ============================================================
+# Logging
+# ============================================================
+logging:
+
+  level:
+    root: INFO
+
+    com.zurak.pms: INFO
+
+    org.springframework:
+      INFO
+
+    org.hibernate:
+      WARN
+
+    org.apache.kafka:
+      WARN
+
+
+# ============================================================
+# Application-specific configuration
+# ============================================================
+pms:
+
+  environment: local
+
+  payment:
+    default-currency: USD
+
+  idempotency:
+    ttl: 24h
+
+  security:
+    enabled: true
