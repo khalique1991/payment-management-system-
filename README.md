@@ -1,2 +1,2 @@
 # payment-management-system-
-Payament Management System
+Payment Management System
